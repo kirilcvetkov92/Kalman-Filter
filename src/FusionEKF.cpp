@@ -174,8 +174,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
         // Radar updates
         
-        // calculate Jacobian based on converted raw measurements from polar to eucledian coordinate system
-        Hj_ = tools.CalculateJacobian(measurement_pack.raw_measurements_);
+        // calculate Jacobian based on converted x measurements from polar to eucledian coordinate system
+        Hj_ = tools.CalculateJacobian(ekf_.x_);
         // adjust the H and R matrices that suits for Radar measurements
         ekf_.H_ = Hj_;
         ekf_.R_ = R_radar_;
