@@ -28,8 +28,8 @@ FusionEKF::FusionEKF() {
     
     //measurement covariance matrix - radar
     R_radar_ << 0.09, 0, 0,
-    0, 0.0009, 0,
-    0, 0, 0.09;
+                0, 0.0009, 0,
+                0, 0, 0.09;
     
     
     //set the acceleration noise components
@@ -37,10 +37,16 @@ FusionEKF::FusionEKF() {
     noise_ay=5;
     
     /**
-     TODO:
-     * Set the process and measurement noises
+     * Set the process and  noises
      */
+    ekf_.P_ = MatrixXd(4, 4);
+    ekf_.P_ << 1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, 1000, 0,
+               0, 0, 0, 1000;
     
+    H_laser_ << 1, 0, 0, 0,
+                0, 1, 0, 0;
     
 }
 
@@ -78,6 +84,18 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             /**
              Convert radar from polar to cartesian coordinates and initialize state.
              */
+            float radius = measurement_pack.raw_measurements_[0];
+            float angle = measurement_pack.raw_measurements_[1];
+            float range_rate = measurement_pack.raw_measurements_[2]; //radial velocity
+            
+            float px = radius * cos(angle);
+            float py = radius * sin(angle);
+            
+            float vx = range_rate * cos(angle);
+            float vy = range_rate * sin(angle);
+            
+            ekf_.x_ << px, py, vx, vy;
+            
         }
         else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
             
@@ -95,11 +113,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     }
     
     /*****************************************************************************
-     *  Prediction
+     *  Prediction - It's the same for Radar and Lidar
      ****************************************************************************/
     
     /**
-     TODO:
      * Update the state transition matrix F according to the new elapsed time.
      - Time is measured in seconds.
      * Update the process noise covariance matrix.
@@ -146,15 +163,24 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
         // Radar updates
+        
+        // calculate Jacobian based on converted raw measurements from polar to eucledian coordinate system
+        Hj_ = tools.CalculateJacobian(measurement_pack.raw_measurements_);
+        // adjust the H and R matrices that suits for Radar measurements
+        ekf_.H_ = Hj_;
+        ekf_.R_ = R_radar_;
+        // update the kalman radar filter parameters based on new measurements
+        ekf_.UpdateEKF(measurement_pack.raw_measurements_);
+
     } else {
         // Laser updates
         //compute the time elapsed between the current and previous measurements
         
-        //4. Call the Laser Kalman Filter update() function
+        // adjust the H and R matrices that suits for Radar measurements
+        ekf_.H_ = H_laser_;
+        ekf_.R_ = R_laser_;
+        // update the calman laser filter paramenters based on new measurements
         ekf_.Update(measurement_pack.raw_measurements_);
-
-        std::cout << "x_= " << ekf_.x_ << std::endl;
-        std::cout << "P_= " << ekf_.P_ << std::endl;
     }
     
     // print the output

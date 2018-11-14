@@ -41,8 +41,7 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
   /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
+    * Update the state by using Extended Kalman Filter equations
   */
     
     float px = x_(0);
@@ -50,16 +49,21 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     float vx = x_(2);
     float vy = x_(3);
     
-    float p = sqrt(pow(px,2) + pow(py,2));
-    float f = atan2(py,px);
-    float p_= (px*vx + py*vy)/p;
+    float radius = sqrt(pow(px,2) + pow(py,2));
+    float angle = atan2(py,px);
+    float range_rate= (px*vx + py*vy)/radius; //radial velocity
     
     VectorXd  H = VectorXd(3);
-    H << p, f, p_;
+    H << radius,
+         angle,
+         range_rate;
     
+    // Calculate y based on radar equiation
     VectorXd y = z - H;
+    // Normalize Y to -pi, pi range
     y(1) = fmod(y(1), M_PI);
-
+    
+    //Update is the same for lidar and radar
     UpdateY(y);
 }
 
@@ -71,7 +75,7 @@ void KalmanFilter::UpdateY(const VectorXd &y)
     MatrixXd PHt = P_ * Ht;
     MatrixXd K = PHt * Si;
     
-    //new estimate
+    //new estimate for x and P_
     x_ = x_ + (K * y);
     long x_size = x_.size();
     MatrixXd I = MatrixXd::Identity(x_size, x_size);
