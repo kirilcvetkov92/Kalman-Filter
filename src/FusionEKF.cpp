@@ -32,13 +32,17 @@ FusionEKF::FusionEKF() {
                 0, 0, 0.09;
     
     
-    //set the acceleration noise components
+
+    
+    /**
+     * Set the matrices which are the same for radar and lidar
+     */
+    
+    //Set the acceleration noise components
     noise_ax=5;
     noise_ay=5;
     
-    /**
-     * Set the process and  noises
-     */
+    // Set the process and noises matrices
     ekf_.P_ = MatrixXd(4, 4);
     ekf_.P_ << 1, 0, 0, 0,
                0, 1, 0, 0,
@@ -47,6 +51,12 @@ FusionEKF::FusionEKF() {
     
     H_laser_ << 1, 0, 0, 0,
                 0, 1, 0, 0;
+    
+    ekf_.F_ = MatrixXd(4, 4);
+    ekf_.F_ << 1, 0, 1, 0,
+               0, 1, 0, 1,
+               0, 0, 1, 0,
+               0, 0, 0, 1;
     
 }
 
