@@ -1,4 +1,4 @@
-# Extended Kalman Filter Project Starter Code
+# My way of implementing the Radar/Lidar Kalman Filter 
 
 In this project we are going to will utilize a kalman filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower than the tolerance outlined in the project rubric. 
 
