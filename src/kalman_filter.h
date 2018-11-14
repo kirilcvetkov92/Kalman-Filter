@@ -64,6 +64,13 @@ public:
    */
   void UpdateEKF(const Eigen::VectorXd &z);
 
+ 
+  /**
+  * Updates the state by taking the y parameters
+  * @param y
+  */
+    void UpdateY(const Eigen::VectorXd &y);
+
 };
 
 #endif /* KALMAN_FILTER_H_ */
